@@ -1,0 +1,46 @@
+Alter session set current_schema = builder2;
+-- (a) Get the stock codes and descriptions of all stock items that are selling at a loss. (Unit price < unitCostPrice)
+Select stock_code, stock_description From stock
+where Unit_price < unitcostprice;
+-- (b) Get the stock codes and descriptions of all stock items that need to be reordered.
+select stock_code, stock_description from stock
+where reorder_level = 1;
+-- (c) List the names of all customers who have no orders.
+select customer_name from customer
+LEFT JOIN corder using(customer_id)
+where corderno is null;
+-- (d) Get the description of any stock item that Handy Andy bought.
+select customer_name, stock_description from stock
+join corderline using(stock_code)
+join corder using(corderno)
+join customer using(customer_id)
+where customer.customer_name = 'Handy Andy';
+
+-- (e) Get the Supplier name of any supplier who didn’t supply any stock.
+select supplier_name from supplier
+left join stock using(supplier_id)
+where stock_code is null;
+
+-- (f) Get the customer_id for customers who bought stock code A101 or A111.
+select customer_id from corder
+join corderline using (corderno)
+where stock_code = 'A101' or stock_code = 'A111';
+-- (g) Get the names of all staff members who took payment from Mary Martin
+select staff_name from staff
+where staff_no = (select staffpaid from corder where customer_id = (select customer_id from customer where customer_name = 'Mary Martin'));
+
+-- (h) Get the names of all staff members who issued goods supplied by Buckleys.
+select staff_name from staff
+where staff_no in (select staffissued from corder 
+join corderline using(corderno) 
+join stock using(stock_code) 
+where supplier_id = (select supplier_id from supplier where supplier_name = 'Buckleys'));
+
+-- (i) Get the customer_id for customers who bought A101 and A111.
+select customer_id from corder
+join corderline using (corderno)
+where stock_code = 'A101' or stock_code = 'A111';
+-- (j) List the supplier_id and supplierorderno for all orders that were delivered late (5 days) or not at all.
+select supplier_id, sorderno from supplier
+join sorder using(supplier_id)
+where trunc(sysdate) - trunc(delivereddate) <= 5;
